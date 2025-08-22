@@ -145,6 +145,26 @@
             </LinearLayout>
 
         </LinearLayout>
+        <Button
+            android:id="@+id/button_copy_dg1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Copy DG1" />
+
+        <Button
+            android:id="@+id/button_copy_dg2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Copy DG2" />
+
+        <Button
+            android:id="@+id/button_copy_sod"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Copy SOD" />
 
     </LinearLayout>
 

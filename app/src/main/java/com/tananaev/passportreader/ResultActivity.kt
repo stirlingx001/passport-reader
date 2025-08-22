@@ -15,10 +15,15 @@
  */
 package com.tananaev.passportreader
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -46,6 +51,28 @@ class ResultActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             findViewById<ImageView>(R.id.view_photo).setImageBitmap(intent.getParcelableExtra(KEY_PHOTO))
         }
+
+        val copyDg1Button = findViewById<Button>(R.id.button_copy_dg1)
+        copyDg1Button.setOnClickListener {
+            copyDataToClipboard(intent.getStringExtra(KEY_DG1))
+        }
+        val copyDg2Button = findViewById<Button>(R.id.button_copy_dg2)
+        copyDg2Button.setOnClickListener {
+            copyDataToClipboard(intent.getStringExtra(KEY_DG2))
+        }
+        val copySodButton = findViewById<Button>(R.id.button_copy_sod)
+        copySodButton.setOnClickListener {
+            copyDataToClipboard(intent.getStringExtra(KEY_SOD))
+        }
+    }
+
+    private fun copyDataToClipboard(data: String?) {
+
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Passport Data", data)
+        clipboard.setPrimaryClip(clip)
+
+        Toast.makeText(this, "Data copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 
     companion object {
@@ -58,5 +85,8 @@ class ResultActivity : AppCompatActivity() {
         const val KEY_PHOTO_BASE64 = "photoBase64"
         const val KEY_PASSIVE_AUTH = "passiveAuth"
         const val KEY_CHIP_AUTH = "chipAuth"
+        const val KEY_DG1 = "dg1"
+        const val KEY_DG2 = "dg2"
+        const val KEY_SOD = "sod"
     }
 }

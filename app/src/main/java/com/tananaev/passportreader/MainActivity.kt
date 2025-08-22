@@ -240,6 +240,12 @@ abstract class MainActivity : AppCompatActivity() {
         private var passiveAuthSuccess = false
         private lateinit var dg14Encoded: ByteArray
 
+        private var dg1Base64 : String? = null
+
+        private var dg2Base64 : String? = null
+
+        private var sodBase64 : String? = null
+
         override fun doInBackground(vararg params: Void?): Exception? {
             try {
                 isoDep.timeout = 10000
@@ -286,8 +292,18 @@ abstract class MainActivity : AppCompatActivity() {
                 val sodIn = service.getInputStream(PassportService.EF_SOD)
                 sodFile = SODFile(sodIn)
 
+                // save data
+                val dg1InTmp = service.getInputStream(PassportService.EF_DG1)
+                val dg1Bytes = dg1InTmp.readBytes()
+                dg1Base64 = Base64.encodeToString(dg1Bytes, Base64.DEFAULT)
+
                 val dg2InTmp = service.getInputStream(PassportService.EF_DG2)
                 val dg2Bytes = dg2InTmp.readBytes()
+                dg2Base64 = Base64.encodeToString(dg2Bytes, Base64.DEFAULT)
+
+                val sodInTmp = service.getInputStream(PassportService.EF_SOD)
+                val sodBytes = sodInTmp.readBytes()
+                sodBase64 = Base64.encodeToString(sodBytes, Base64.DEFAULT)
                 dg2InTmp.close()
                 saveDg2BytesToDownloads(this@MainActivity, dg2Bytes, "dg2_data.bin")
 
@@ -469,6 +485,11 @@ abstract class MainActivity : AppCompatActivity() {
                 }
                 intent.putExtra(ResultActivity.KEY_PASSIVE_AUTH, passiveAuthStr)
                 intent.putExtra(ResultActivity.KEY_CHIP_AUTH, chipAuthStr)
+
+                intent.putExtra(ResultActivity.KEY_DG1, dg1Base64)
+                intent.putExtra(ResultActivity.KEY_DG2, dg2Base64)
+                intent.putExtra(ResultActivity.KEY_SOD, sodBase64)
+
                 bitmap?.let { bitmap ->
                     if (encodePhotoToBase64) {
                         intent.putExtra(ResultActivity.KEY_PHOTO_BASE64, imageBase64)
