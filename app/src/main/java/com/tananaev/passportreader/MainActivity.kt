@@ -19,14 +19,20 @@ package com.tananaev.passportreader
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.preference.PreferenceManager
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Base64
@@ -63,7 +69,11 @@ import org.jmrtd.lds.icao.DG2File
 import org.jmrtd.lds.iso19794.FaceImageInfo
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.Signature
@@ -77,6 +87,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.concurrent.write
 
 abstract class MainActivity : AppCompatActivity() {
 
@@ -271,9 +282,14 @@ abstract class MainActivity : AppCompatActivity() {
                 val dg1In = service.getInputStream(PassportService.EF_DG1)
                 dg1File = DG1File(dg1In)
                 val dg2In = service.getInputStream(PassportService.EF_DG2)
-                dg2File = DG2File(dg2In)
+                 dg2File = DG2File(dg2In)
                 val sodIn = service.getInputStream(PassportService.EF_SOD)
                 sodFile = SODFile(sodIn)
+
+                val dg2InTmp = service.getInputStream(PassportService.EF_DG2)
+                val dg2Bytes = dg2InTmp.readBytes()
+                dg2InTmp.close()
+                saveDg2BytesToDownloads(this@MainActivity, dg2Bytes, "dg2_data.bin")
 
                 doChipAuth(service)
                 doPassiveAuth()
@@ -296,6 +312,48 @@ abstract class MainActivity : AppCompatActivity() {
                 return e
             }
             return null
+        }
+
+        private fun saveDg2BytesToDownloads(context: Context, dg2Bytes: ByteArray, fileName: String = "dg2_data.bin") {
+            var outputStream: OutputStream? = null
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val resolver = context.contentResolver
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                    }
+
+                    val uri: Uri? = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    if (uri != null) {
+                        outputStream = resolver.openOutputStream(uri)
+                        if (outputStream == null) {
+                            throw IOException("Failed to get output stream.")
+                        }
+                    } else {
+                        throw IOException("Failed to create new MediaStore record.")
+                    }
+                } else {
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    if (!downloadsDir.exists()) {
+                        downloadsDir.mkdirs()
+                    }
+                    val file = File(downloadsDir, fileName)
+                    outputStream = FileOutputStream(file)
+                }
+
+                outputStream?.write(dg2Bytes)
+                Log.d(TAG, "DG2 data saved successfully to Downloads directory. File: $fileName")
+
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save DG2 data to Downloads directory", e)
+            } finally {
+                try {
+                    outputStream?.close()
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to close output stream", e)
+                }
+            }
         }
 
         private fun doChipAuth(service: PassportService) {
