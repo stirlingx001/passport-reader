@@ -305,7 +305,10 @@ abstract class MainActivity : AppCompatActivity() {
                 val sodBytes = sodInTmp.readBytes()
                 sodBase64 = Base64.encodeToString(sodBytes, Base64.DEFAULT)
                 dg2InTmp.close()
-                saveDg2BytesToDownloads(this@MainActivity, dg2Bytes, "dg2_data.bin")
+
+                saveDataToDownloads(this@MainActivity, dg1Bytes, "dg1_data.bin")
+                saveDataToDownloads(this@MainActivity, dg2Bytes, "dg2_data.bin")
+                saveDataToDownloads(this@MainActivity, sodBytes, "sod_data.bin")
 
                 doChipAuth(service)
                 doPassiveAuth()
@@ -330,7 +333,7 @@ abstract class MainActivity : AppCompatActivity() {
             return null
         }
 
-        private fun saveDg2BytesToDownloads(context: Context, dg2Bytes: ByteArray, fileName: String = "dg2_data.bin") {
+        private fun saveDataToDownloads(context: Context, data: ByteArray, fileName: String) {
             var outputStream: OutputStream? = null
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -358,11 +361,11 @@ abstract class MainActivity : AppCompatActivity() {
                     outputStream = FileOutputStream(file)
                 }
 
-                outputStream?.write(dg2Bytes)
-                Log.d(TAG, "DG2 data saved successfully to Downloads directory. File: $fileName")
+                outputStream?.write(data)
+                Log.d(TAG, "Data saved successfully to Downloads directory. File: $fileName")
 
             } catch (e: IOException) {
-                Log.e(TAG, "Failed to save DG2 data to Downloads directory", e)
+                Log.e(TAG, "Failed to save data to Downloads directory", e)
             } finally {
                 try {
                     outputStream?.close()
